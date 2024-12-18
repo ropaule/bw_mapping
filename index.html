@@ -1,19 +1,41 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Schulkarte</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1 class="box">Schulen in BW</h1>
-  <input type="file" class="box" id="fileInput" accept=".xls,.xlsx" />
+
+  <div id="uploadModal" class="modal">
+    <div class="modal-content">
+      <h2>Datei hochladen</h2>
+      <p>Bitte laden Sie eine Excel-Datei hoch, um die App nutzen zu können.</p>
+      <input type="file" id="modalFileInput" accept=".xls,.xlsx" />
+    </div>
+  </div>
+  
+  <div id="controls" class="hidden">
+    <label for="maxHours">Max. Fahrtdauer (Std.):</label>
+    <div class="number-input-container">
+      <button class="number-button decrement">-</button>
+      <input type="number" id="maxHours" value="1" min="0" max="100" step="1">
+      <button class="number-button increment">+</button>
+    </div>
+    <label>
+      <input type="checkbox" id="stuttgartStartEnd" checked> Immer Start Stg
+    </label>
+    <button id="calculateRoute" disabled>Route berechnen</button>
+  </div>
+  
+  
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
