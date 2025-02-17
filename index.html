@@ -23,6 +23,10 @@
       <button class="number-button decrement">-</button>
       <input type="number" id="maxHours" value="1" min="0" max="100" step="1">
       <button class="number-button increment">+</button>
+      <label>
+        <input type="checkbox" id="toggleLabels" checked> Landkreise anzeigen
+      </label>
+      
     </div>
     <label>
       <input type="checkbox" id="stuttgartStartEnd" checked> Immer Start Stg
@@ -36,6 +40,8 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/osmtogeojson@3.0.0-beta.5/osmtogeojson.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
+
