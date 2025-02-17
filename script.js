@@ -12,6 +12,65 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap-Mitwirkende'
 }).addTo(map);
 
+// Erstelle eigene Panes:
+// Pane für die Landkreis-Polygone (niedriger zIndex als Marker)
+map.createPane('countyPolygonPane');
+map.getPane('countyPolygonPane').style.zIndex = 300;
+
+// Pane für die Landkreis-Labels (noch weiter hinten)
+map.createPane('countyLabelPane');
+map.getPane('countyLabelPane').style.zIndex = 250;
+
+// Landkreis-Grenzen dynamisch über Overpass API abrufen und als GeoJSON-Layer hinzufügen
+let countiesData = null;
+const overpassUrl = "https://overpass-api.de/api/interpreter";
+const query = `
+  [out:json][timeout:25];
+  area["name"="Baden-Württemberg"][admin_level=4]->.searchArea;
+  relation["admin_level"="6"](area.searchArea);
+  out geom;
+`;
+
+fetch(overpassUrl, {
+  method: "POST",
+  body: "data=" + encodeURIComponent(query)
+})
+  .then(response => response.json())
+  .then(data => {
+    // Konvertiere die Overpass-Antwort in GeoJSON mithilfe von osmtogeojson
+    countiesData = osmtogeojson(data);
+    L.geoJSON(countiesData, {
+      pane: 'countyPolygonPane', // Polygone in eigenes Pane legen
+      filter: function(feature) {
+        // Nur Polygon-Features (keine Centroid-Punkte)
+        return feature.geometry.type !== "Point";
+      },
+      style: {
+        color: 'orange',
+        weight: 2,
+        fill: false
+      },
+      onEachFeature: function(feature, layer) {
+        // Berechne den Mittelpunkt des Polygons
+        const center = layer.getBounds().getCenter();
+        // Versuche, den Namen unter "name" oder "NAME" zu finden
+        const countyName = feature.properties.name || feature.properties.NAME || "Unbekannt";
+        // Erstelle einen Marker an der Mitte als Label
+        L.marker(center, {
+          icon: L.divIcon({
+            className: 'county-label',
+            html: countyName,
+            // iconSize kann über CSS definiert werden, oder hier explizit:
+            iconSize: [160, 20]
+          }),
+          interactive: false, // keine Interaktionen
+          pane: 'countyLabelPane'
+        }).addTo(map);
+      }
+    }).addTo(map);
+  })
+  .catch(err => console.error('Fehler beim Laden der Landkreise:', err));
+
 const routeColors = ['blue', 'red', 'green', 'purple', 'orange', 'darkred', 'darkblue', 'darkgreen', 'darkpurple', 'cadetblue'];
 
 let markers = [];
@@ -444,4 +503,37 @@ function hideLoadingState(button) {
   document.body.style.cursor = 'auto';
 }
 
+// Funktionen zum Aus-/Einblenden der County-Linien und Labels
 
+function hideCountyLayers() {
+  // Hole beide Panes und setze display auf "none"
+  const labelPane = map.getPane('countyLabelPane');
+  const polygonPane = map.getPane('countyPolygonPane');
+  if (labelPane) {
+    labelPane.style.display = 'none';
+  }
+  if (polygonPane) {
+    polygonPane.style.display = 'none';
+  }
+}
+
+function showCountyLayers() {
+  // Setze beide Panes auf "block"
+  const labelPane = map.getPane('countyLabelPane');
+  const polygonPane = map.getPane('countyPolygonPane');
+  if (labelPane) {
+    labelPane.style.display = 'block';
+  }
+  if (polygonPane) {
+    polygonPane.style.display = 'block';
+  }
+}
+
+// Checkbox-Event-Listener zum Umschalten der County-Layer
+document.getElementById('toggleLabels').addEventListener('change', function(e) {
+  if (e.target.checked) {
+    showCountyLayers();
+  } else {
+    hideCountyLayers();
+  }
+});
